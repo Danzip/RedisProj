@@ -28,6 +28,11 @@ class Server(object):
         self.log('Accepted new client with address {}'.format(client_address))
         self.clients.append(Client(client_socket, client_address))
 
+    def send(self,client,data):
+        client.socket.send(data)
+    def recv(self):
+
+
 
 class Client(object):
     def __init__(self, socket, address, name=None):
