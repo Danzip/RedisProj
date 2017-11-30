@@ -56,12 +56,9 @@ def main():
     server.listen()
     server.accept()
     server.socket.close()
-<<<<<<< HEAD
     server.send(self.clients[0],"hi")
     name=server.recv(self.clients[0])
     self.log("received name {}".name)
-=======
->>>>>>> Lee
 
 if __name__ == "__main__":
     main()

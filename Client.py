@@ -25,15 +25,12 @@ class Client(object):
 def main():
     c=Client(address = ('127.0.0.1',3031))
     c.connect()
-<<<<<<< HEAD
 #     added line
-=======
     response = c.receive()
     print response
     c.send('gay')
     # if response == 'hi'
 
->>>>>>> 50bad03e71c39db1a87364eb20c5516e90a4dcdd
 
 if __name__ == "__main__":
     main()
