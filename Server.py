@@ -29,12 +29,11 @@ class Server(object):
         self.log('Accepted new client with address {}'.format(client_address))
         self.clients.append(Client(client_socket, client_address))
 
-    def send(self,client,data):
+    def send(self, client, data):
         client.socket.send(data)
 
-    def recv(self,client):
+    def recv(self, client):
         return client.socket.recv(1024)
-
 
 
 class Client(object):
@@ -47,7 +46,6 @@ class Client(object):
         self.name = name
 
 
-
 def main():
     server_ip = '127.0.0.1'
     server_port = 3031
@@ -56,9 +54,16 @@ def main():
     server.listen()
     server.accept()
     server.socket.close()
+#<<<<<<< HEAD
     server.send(self.clients[0],"hi")
     name=server.recv(self.clients[0])
     self.log("received name {}".name)
+#=======
+    server.send(server.clients[0], "hi")
+    name = server.recv(server.clients[0])
+    server.log("received name: '{}'".format(name))
+
+#>>>>>>> 6fc5107a1d88f6c7a58525b7c65015f207eb18b8
 
 if __name__ == "__main__":
     main()
