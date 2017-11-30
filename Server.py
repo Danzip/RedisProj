@@ -5,12 +5,13 @@ import json
 
 
 class Server(object):
-    def __init__(self, server_ip, server_port, socket=None, clients=None):
+    def __init__(self, server_ip, server_port, socket=None, clients=[]):
         self.addr = (server_ip, server_port)
         if socket == None:
             socket = s.socket(s.AF_INET, s.SOCK_STREAM)
         self.socket = socket
         self.clients = clients
+        self.socket.setsockopt(s.SOL_SOCKET, s.SO_REUSEADDR, 1)
 
     def log(self, text):
         print >> sys.stderr, text
@@ -44,3 +45,20 @@ class Client(object):
 
     def add_name(self, name):
         self.name = name
+
+
+
+def main():
+    server_ip = '127.0.0.1'
+    server_port = 3031
+    server = Server(server_ip, server_port)
+    server.bind()
+    server.listen()
+    server.accept()
+    server.socket.close()
+    server.send(self.clients[0],"hi")
+    name=server.recv(self.clients[0])
+    self.log("received name {}".name)
+
+if __name__ == "__main__":
+    main()
