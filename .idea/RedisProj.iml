@@ -11,6 +11,10 @@
 =======
     <option name="projectConfiguration" value="Nosetests" />
     <option name="PROJECT_TEST_RUNNER" value="Nosetests" />
+<<<<<<< HEAD
 >>>>>>> master
+=======
+>>>>>>> Lee
+>>>>>>> 50bad03e71c39db1a87364eb20c5516e90a4dcdd
   </component>
 </module>
