@@ -4,6 +4,31 @@ import sys
 import json
 
 
+class DB(object):
+    def __init__(self):
+        self.dict = {}
+
+
+    def addData(self, key, value):
+        self.dict[json.dumps(key)] = json.dumps(value)
+
+
+    def getData(self, key):
+        try:
+            print 'Added successfully'
+            return json.loads(self.dict[json.dumps(key)])
+        except(KeyError):
+            print "Error: Key doesn't exist"
+
+
+    def search(self, text):
+        output = []
+        for key in self.dict.keys():
+            if key.startswith(text):
+                output.append(key)
+        return output
+
+
 class Server(object):
     def __init__(self, server_ip, server_port, socket=None, clients=[]):
         self.addr = (server_ip, server_port)
