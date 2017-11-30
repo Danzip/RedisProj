@@ -30,7 +30,9 @@ class Server(object):
 
     def send(self,client,data):
         client.socket.send(data)
-    def recv(self):
+
+    def recv(self,client):
+        return client.socket.recv(1024)
 
 
 
