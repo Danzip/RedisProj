@@ -15,9 +15,13 @@ class Client(object):
         self.socket.connect(self.address)
         self.log("connected to address {}".format(self.address))
 
+    # def receive(self):
+    #     self.socket.recv()
+
 def main():
     c=Client(address = ('127.0.0.1',3031))
     c.connect()
+    c.re
 #     added line
 # another line
 
