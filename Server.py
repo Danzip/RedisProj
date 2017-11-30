@@ -4,6 +4,31 @@ import sys
 import json
 
 
+class DB(object):
+    def __init__(self):
+        self.dict = {}
+
+
+    def addData(self, key, value):
+        self.dict[json.dumps(key)] = json.dumps(value)
+
+
+    def getData(self, key):
+        try:
+            print 'Added successfully'
+            return json.loads(self.dict[json.dumps(key)])
+        except(KeyError):
+            print "Error: Key doesn't exist"
+
+
+    def search(self, text):
+        output = []
+        for key in self.dict.keys():
+            if key.startswith(text):
+                output.append(key)
+        return output
+
+
 class Server(object):
     def __init__(self, server_ip, server_port, socket=None, clients=[]):
         self.addr = (server_ip, server_port)
@@ -29,6 +54,12 @@ class Server(object):
         self.log('Accepted new client with address {}'.format(client_address))
         self.clients.append(Client(client_socket, client_address))
 
+    def send(self, client, data):
+        client.socket.send(data)
+
+    def recv(self, client):
+        return client.socket.recv(1024)
+
 
 class Client(object):
     def __init__(self, socket, address, name=None):
@@ -40,7 +71,6 @@ class Client(object):
         self.name = name
 
 
-
 def main():
     server_ip = '127.0.0.1'
     server_port = 3031
@@ -49,6 +79,11 @@ def main():
     server.listen()
     server.accept()
     server.socket.close()
+    server.send(server.clients[0], "hi")
+    name = server.recv(server.clients[0])
+    server.log("received name: '{}'".format(name))
+
+#>>>>>>> 6fc5107a1d88f6c7a58525b7c65015f207eb18b8
 
 if __name__ == "__main__":
     main()
