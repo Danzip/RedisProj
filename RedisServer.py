@@ -9,10 +9,12 @@ GET = 'get'
 SET = 'set'
 SEARCH = 'search'
 UNKNOWN_COMMAND = 'unknown command'
-NOT_FOUND ='not found'
-GOODBYE='good bye'
-IP='127.0.0.1'
-PORT=3030
+NOT_FOUND = 'not found'
+GOODBYE = 'good bye'
+IP = '127.0.0.1'
+PORT = 3030
+
+
 class DB(object):
     def __init__(self):
         self.dict = {}
@@ -22,11 +24,11 @@ class DB(object):
 
     def getData(self, key):
         try:
-            #print 'Added successfully'
+            # print 'Added successfully'
             return self.dict[key]
         except(KeyError):
             return False
-            #print "Error: Key doesn't exist"
+            # print "Error: Key doesn't exist"
 
     def search(self, text):
         output = []
@@ -34,8 +36,6 @@ class DB(object):
             if key.startswith(text):
                 output.append(key)
         return output
-
-
 
 
 class Client(object):
@@ -49,15 +49,14 @@ class Client(object):
 
 
 class ConnectionHandler(object):
-    def __init__(self,server,socket,address):
+    def __init__(self, server, socket, address):
         self.server = server
-        self.socket=socket
-        self.address=address
+        self.socket = socket
+        self.address = address
         self.start_connection()
 
     def log(self, text):
         print >> sys.stderr, text
-
 
     def listen(self, slots=5):
         self.socket.listen(slots)
@@ -70,7 +69,7 @@ class ConnectionHandler(object):
     def accept(self):
         client_socket, client_address = self.socket.accept()
         self.log('Accepted new client with address {}'.format(client_address))
-        client=Client(client_socket,client_address)
+        client = Client(client_socket, client_address)
         self.handle_client_con(client)
 
     def send_to_client(self, client, data):
@@ -89,63 +88,65 @@ class ConnectionHandler(object):
         name = self.recv_from_client(client)
         self.log("received name: '{}'".format(name))
 
-        success=self.server.add_client(name,client)
+        success = self.server.add_client(name, client)
         if not success:
-            self.send_to_client(client,TAKEN)
+            self.send_to_client(client, TAKEN)
             client.socket.close()
             return
+        self.send_to_client(client, OK)
         self.handle_client_commands(client)
 
-    def recv_command(self,client):
-        command=self.recv_from_client(client)
-        if command =='':
+    def recv_command(self, client):
+        command = self.recv_from_client(client)
+        if command == '':
             return command
-        unpacked_command=json.loads(command)
+        unpacked_command = json.loads(command)
         return unpacked_command
 
-    def send_answer(self,client,answer):
-        packed_answer=json.dumps(answer)
-        client.send_to_cliesnt(client,packed_answer)
+    def send_answer(self, client, answer):
+        packed_answer = json.dumps(answer)
+        self.send_to_client(client, packed_answer)
 
-    def handle_client_commands(self,client):
+    def handle_client_commands(self, client):
         command = self.recv_command(client)
-        while command!=GOODBYE and command !='':
+        while command != GOODBYE and command != '':
             command_action = command.keys()[0]
             command_values = command[command_action]
             if command_action == SET:
-                server_response=self.server.set_data(command_values)
-                client.send_answer(client,OK)
+                key_to_set = command_values.keys()[0]
+                values_to_set = command_values[key_to_set]
+                server_response = self.server.setData(key_to_set, values_to_set)
+                self.send_answer(client, OK)
             elif command_action == GET:
-                server_response =self.server.get_data(command_values.keys()[0])
-                if server_response==False:
-                    client.send_answer(client,NOT_FOUND)
+                server_response = self.server.getData(command_values)
+                if server_response == False:
+                    self.send_answer(client, NOT_FOUND)
                 else:
-                    client.send_answer(client,server_response)
+                    self.send_answer(client, server_response)
             elif command_action == SEARCH:
-                server_response =self.server.search_key(command_values)
-                client.send_answer(client,server_response)
-            command=self.recv_command(client)
+                server_response = self.server.search(command_values)
+                self.send_answer(client, server_response)
+            command = self.recv_command(client)
         client.socket.close()
 
 
-class Server(object):#sends request to database,receives answer sends answer to translator
-    def __init__(self,address,socket=None,clients={}):
+class Server(object):  # sends request to database,receives answer sends answer to translator
+    def __init__(self, address, socket=None, clients={}):
         self.clients = clients
         self.socket = socket
-        if socket==None:
-            self.socket=s.socket(s.AF_INET,s.SOCK_STREAM)
-        self.data_base=DB()
-        self.connection_handler=ConnectionHandler(self,self.socket,address)
+        if socket == None:
+            self.socket = s.socket(s.AF_INET, s.SOCK_STREAM)
+        self.data_base = DB()
+        self.connection_handler = ConnectionHandler(self, self.socket, address)
 
-
-    def add_client(self,name,client):
+    def add_client(self, name, client):
         if name not in self.clients.keys():
-            self.clients[name]=client
+            self.clients[name] = client
             return True
         return False
 
     def setData(self, key, value):
-        self.data_base.setData(key,value)
+        self.data_base.setData(key, value)
 
     def getData(self, key):
         return self.data_base.getData(key)
@@ -153,12 +154,11 @@ class Server(object):#sends request to database,receives answer sends answer to 
     def search(self, text):
         return self.data_base.search(text)
 
-       # self.translator = Translator(self)
-
+        # self.translator = Translator(self)
 
 
 def main():
-    server_address = (IP,PORT)
+    server_address = (IP, PORT)
     server = Server(server_address)
 
 
