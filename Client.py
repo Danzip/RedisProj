@@ -23,7 +23,7 @@ class Client(object):
         print ('message sent')
 
 def main():
-    c=Client(address = ('127.0.0.1',3031))
+    c=Client(address = ('127.0.0.1',3030))
     c.connect()
 #     added line
     response = c.receive()

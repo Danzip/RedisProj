@@ -65,10 +65,10 @@ class Server(object):
         self.handle_client_con(client_socket,client_address)
 
     def send(self, client, data):
-        client.socket.send(data)
+        client.socket.send_to_client(data)
 
     def recv(self, client):
-        return client.socket.recv(4096)
+        return client.socket.recv_from_client(4096)
 
 
     def handle_client_con(self, client_socket, client_address):
