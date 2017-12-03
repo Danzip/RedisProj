@@ -15,13 +15,18 @@ GOODBYE = 'good bye'
 IP = '127.0.0.1'
 PORT = 3030
 SHUTDOWN='shutdown'
-
-
+SHOW_CLIENTS='show_clients'
+FLUSH_DB= 'flush db'
+CLEAN_DB=' clean db'
 class DB(object):
     def __init__(self,file='backup.txt'):
         self.dict = {}
         self.backup_file=file
         self.loadFromBackUp()
+
+    def cleanData(self):
+        self.dict={}
+        self.backupData()
 
     def loadFromBackUp(self):
         f=open(self.backup_file,'r')
@@ -101,10 +106,13 @@ class ConnectionHandler(object):
     def handleConnection(self):
         self.bind()
         self.listen()
-        serverUp=True
-        while serverUp:
+        while self.server.server_up:
             client=self.accept()
-            thread.start_new_thread(self.clientHandler, (client,))
+            print "handle connection on"
+            d = threading.Thread(target=self.clientHandler, args=(client,))
+            d.daemon = True
+            d.start()
+            print self.server.server_up
 
 
     def clientHandler(self, client):
@@ -134,7 +142,8 @@ class ConnectionHandler(object):
 
     def commandsHandler(self, client):
         command = self.recv_command(client)
-        while command != GOODBYE and command != '':
+        while command != GOODBYE and command != '' and self.server.server_up:
+            print "commandsHANDLEr ON"
             command_action = command.keys()[0]
             command_values = command[command_action]
             if command_action == SET:
@@ -166,21 +175,23 @@ class Server(object):  # sends request to database,receives answer sends answer 
             self.socket = s.socket(s.AF_INET, s.SOCK_STREAM)
         self.data_base = DB()
         self.connection_handler = ConnectionHandler(self, self.socket, address)
-        # thread.start_new_thread(raw_input,("hi",))
-        thread.start_new_thread(self.handleIO,())
-        thread.start_new_thread(self.databaseHandler,())
-        self.connection_handler.handleConnection()
-
-        #
-        # self.connection_handler.handleConnection()
+        IO_thread = threading.Thread(target=self.handleIO,args=())
+        IO_thread.daemon = False
+        IO_thread.start()
+        db_thread = threading.Thread(target=self.databaseHandler,args=())
+        db_thread.daemon = True
+        db_thread.start()
+        iWishItWork = threading.Thread(target=self.connection_handler.handleConnection,args=())
+        iWishItWork.daemon = True
+        iWishItWork.start()
     def log(self,data):
         print data
 
-    def databaseHandler(self,time =7.0):
+    def databaseHandler(self,time =10.0):
         t = threading.Timer(time, self.databaseHandler)
         if self.server_up:
             t.start()
-            print("backing up data")
+            #print("backing up data")
             self.data_base.backupData()
         else:
             t.cancel()
@@ -195,13 +206,21 @@ class Server(object):  # sends request to database,receives answer sends answer 
         command=raw_input("enter command:")
         while command!=SHUTDOWN:
             command=raw_input("enter command:")
-            pass
-        print 'blaaaaaaaaaaaaaaaa'
+            if command== SHOW_CLIENTS:
+                for client in self.clients:
+                    print client
+            if command== FLUSH_DB:
+                self.data_base.backupData()
+                self.log('flushed successfully !')
+            if command== CLEAN_DB:
+                self.data_base.cleanData()
+                self.log('cleaned successfully !')
+
         for client in self.clients:
             self.clients[client].socket.close()
         self.socket.close()
         self.server_up = False
-        raise NameError('System is off')
+        return
 
     def setData(self, key, value):
         self.data_base.setData(key, value)
@@ -212,7 +231,6 @@ class Server(object):  # sends request to database,receives answer sends answer 
     def search(self, text):
         return self.data_base.search(text)
 
-        # self.translator = Translator(self)
 
 
 def main():
@@ -221,14 +239,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # sys.excepthook = myexcepthook
     main()
 
-# class Translator(object):
-#     def __init__(self,server):
-#         self.server=server
-#         self.connection_handler=connection_handler
-#     def handle_command(self):
-#         pass
-#     def handle_response(self):
-#         pass
+
