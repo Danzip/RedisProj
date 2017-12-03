@@ -53,7 +53,7 @@ class ConnectionHandler(object):
         self.server = server
         self.socket = socket
         self.address = address
-        self.start_connection()
+        self.handleConnection()
 
     def log(self, text):
         print >> sys.stderr, text
@@ -70,7 +70,7 @@ class ConnectionHandler(object):
         client_socket, client_address = self.socket.accept()
         self.log('Accepted new client with address {}'.format(client_address))
         client = Client(client_socket, client_address)
-        self.handle_client_con(client)
+        return client
 
     def send_to_client(self, client, data):
         client.socket.send(data)
@@ -78,12 +78,14 @@ class ConnectionHandler(object):
     def recv_from_client(self, client):
         return client.socket.recv(4096)
 
-    def start_connection(self):
+    def handleConnection(self):
         self.bind()
         self.listen()
-        self.accept()
+        client=self.accept()
+        self.clientHandshake(client)
+        self.commandsHandler(client)
 
-    def handle_client_con(self, client):
+    def clientHandshake(self, client):
         self.send_to_client(client, OK)
         name = self.recv_from_client(client)
         self.log("received name: '{}'".format(name))
@@ -94,7 +96,7 @@ class ConnectionHandler(object):
             client.socket.close()
             return
         self.send_to_client(client, OK)
-        self.handle_client_commands(client)
+
 
     def recv_command(self, client):
         command = self.recv_from_client(client)
@@ -107,7 +109,7 @@ class ConnectionHandler(object):
         packed_answer = json.dumps(answer)
         self.send_to_client(client, packed_answer)
 
-    def handle_client_commands(self, client):
+    def commandsHandler(self, client):
         command = self.recv_command(client)
         while command != GOODBYE and command != '':
             command_action = command.keys()[0]
