@@ -39,27 +39,27 @@ class Client(object):
     def send(self, text):
         self.socket.sendall(text)
 
-    def set(self, (keys, values)):
-        dict = {}
-        for i in range(len(keys)):
-            dict[keys[i]] = values[i]
+    def set(self):
+        key = raw_input("enter key: ")
+        value = raw_input("enter value: ")
+        dict = {key: value}
         message = {SET: dict}
         # print 'for testing: this was sent - {}'.format(message)
         self.send(json.dumps(message))
         return self.receive()
     COMMANDS[SET] = set
 
-    def get(self, keys):
-        message = {GET: keys}
+    def get(self):
+        key = raw_input("enter requested key: ")
+        message = {GET: key}
         self.send(json.dumps(message))
-        return self.receive()
         return self.receive()
     COMMANDS[GET] = get
 
-    def search(self, str):
+    def search(self):
+        str = raw_input("enter string to search: ")
         message = {SEARCH: str}
         self.send(json.dumps(message))
-        return self.receive()
         return self.receive()
     COMMANDS[SEARCH] = search
 
@@ -67,45 +67,36 @@ class Client(object):
         self.send(name)
         response = self.socket.receive()
         if response == TAKEN:
-            print "name '{}' is already taken"
+            self.log("name '{}' is already taken")
             return
-        print 'name was accepted :)'
+        self.log('name was accepted :)')
 
     def printCommandsList(self):
         for i in range(len(COMMANDS)):
-            print '{}. {}'.format(i, COMMANDS.keys()[i])
+            self.log('{}. {}'.format(i, COMMANDS.keys()[i]))
 
     def enterCommand(self):
         self.printCommandsList()
         command_number = raw_input('Enter command number...')
+        command_number = int(command_number)
         command_name = COMMANDS.keys()[command_number]
-        client = COMMANDS[command_name]
+        command_func = COMMANDS[command_name]
+        return command_func()
 
-        COMMANDS[command_number]()
-
-
-    def sendCommand(self, command_name):
-
-
+    def printResponse(response):
+        self.log('response from server: {}'.format(response))
 
     def startConnection(self):
         self.connect()
         self.name = self.getName()
         self.sendName(self.name)
-        self.sendCommand(self.enterCommand())
-
-
+        response = self.enterCommand()
+        while True:
+            self.printResponse(response)
+            response = self.enterCommand()
 
 def main():
     c = Client(address = (IP, PORT))
-
-    response = c.set((['first_key'],['first_value']))
-    print json.loads(response)
-    response = c.get('first_key')
-    print json.loads(response)
-    response = c.search('f')
-    print json.loads(response)
-
 
 if __name__ == "__main__":
     main()
