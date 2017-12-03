@@ -78,10 +78,10 @@ def main():
     server.bind()
     server.listen()
     server.accept()
-    server.socket.close()
     server.send(server.clients[0], "hi")
     name = server.recv(server.clients[0])
     server.log("received name: '{}'".format(name))
+    server.socket.close()
 
 #>>>>>>> 6fc5107a1d88f6c7a58525b7c65015f207eb18b8
 
