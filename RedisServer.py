@@ -16,9 +16,18 @@ PORT = 3030
 
 
 class DB(object):
-    def __init__(self):
+    def __init__(self,file='backup.txt'):
         self.dict = {}
+        self.backup_file=file
 
+    def loadFromBackUp(self):
+        f=open(self.backup_file,'r')
+        data=f.read()
+        lines=data.split('\n')
+        for line in lines:
+            if ' : ' in line:
+                key,value=line.split(' : ')
+                self.dict[key]=json.loads(value)
     def setData(self, key, value):
         self.dict[key] = value
 
@@ -37,6 +46,13 @@ class DB(object):
                 output.append(key)
         return output
 
+    def backupData(self):
+        f = open(self.backup_file, 'w')
+        for key in self.dict:
+            f.write("{} : {}".format(key,json.dumps(self.dict[key])))
+        f.close()
+
+
 
 class Client(object):
     def __init__(self, socket, address, name=None):
@@ -53,7 +69,7 @@ class ConnectionHandler(object):
         self.server = server
         self.socket = socket
         self.address = address
-        self.handleConnection()
+        #self.handleConnection()
 
     def log(self, text):
         print >> sys.stderr, text
@@ -143,6 +159,7 @@ class Server(object):  # sends request to database,receives answer sends answer 
             self.socket = s.socket(s.AF_INET, s.SOCK_STREAM)
         self.data_base = DB()
         self.connection_handler = ConnectionHandler(self, self.socket, address)
+        self.connection_handler.handleConnection()
 
     def add_client(self, name, client):
         if name not in self.clients.keys():
