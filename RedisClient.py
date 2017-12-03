@@ -10,6 +10,7 @@ GET = 'get'
 SEARCH = 'search'
 OK = 'ok'
 TAKEN = 'taken'
+GOODBYE = 'good bye'
 UNKNOWN_COMMAND = 'unknown command'
 
 COMMANDS = {}
@@ -31,7 +32,7 @@ class Client(object):
         self.log("connection to address {} status: {}".format(self.address, self.receive()))
 
     def getName(self):
-        return raw_input('Enter your name:')
+        return raw_input('Enter your name: ')
 
     def receive(self):
         return self.socket.recv(4096)
@@ -65,11 +66,11 @@ class Client(object):
 
     def sendName(self, name):
         self.send(name)
-        response = self.socket.receive()
+        response = self.receive()
         if response == TAKEN:
             self.log("name '{}' is already taken")
             return
-        self.log('name was accepted :)')
+        self.log('name was accepted :)\n')
 
     def printCommandsList(self):
         for i in range(len(COMMANDS)):
@@ -77,13 +78,13 @@ class Client(object):
 
     def enterCommand(self):
         self.printCommandsList()
-        command_number = raw_input('Enter command number...')
+        command_number = raw_input('Enter command number: ')
         command_number = int(command_number)
         command_name = COMMANDS.keys()[command_number]
         command_func = COMMANDS[command_name]
-        return command_func()
+        return command_func(self)
 
-    def printResponse(response):
+    def printResponse(self, response):
         self.log('response from server: {}'.format(response))
 
     def startConnection(self):
@@ -91,9 +92,11 @@ class Client(object):
         self.name = self.getName()
         self.sendName(self.name)
         response = self.enterCommand()
-        while True:
+        while response != GOODBYE:
             self.printResponse(response)
             response = self.enterCommand()
+        print 'close connection...'
+        return
 
 def main():
     c = Client(address = (IP, PORT))
