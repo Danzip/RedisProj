@@ -17,7 +17,8 @@ PORT = 3030
 SHUTDOWN='shutdown'
 SHOW_CLIENTS='show_clients'
 FLUSH_DB= 'flush db'
-CLEAN_DB=' clean db'
+CLEAN_DB='clean db'
+
 class DB(object):
     def __init__(self,file='backup.txt'):
         self.dict = {}
@@ -108,11 +109,11 @@ class ConnectionHandler(object):
         self.listen()
         while self.server.server_up:
             client=self.accept()
-            print "handle connection on"
+            # print "handle connection on"
             d = threading.Thread(target=self.clientHandler, args=(client,))
             d.daemon = True
             d.start()
-            print self.server.server_up
+            # print self.server.server_up
 
 
     def clientHandler(self, client):
@@ -124,6 +125,7 @@ class ConnectionHandler(object):
         if not success:
             self.send_to_client(client, TAKEN)
             client.socket.close()
+            self.log('name is already taken. closing connection')
             return
         self.send_to_client(client, OK)
         self.commandsHandler(client)
@@ -143,7 +145,7 @@ class ConnectionHandler(object):
     def commandsHandler(self, client):
         command = self.recv_command(client)
         while command != GOODBYE and command != '' and self.server.server_up:
-            print "commandsHANDLEr ON"
+            # print "commandsHANDLEr ON"
             command_action = command.keys()[0]
             command_values = command[command_action]
             if command_action == SET:
