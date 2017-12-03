@@ -1,5 +1,5 @@
 import socket as s
-import threading
+import thread
 import sys
 import json
 
@@ -81,11 +81,13 @@ class ConnectionHandler(object):
     def handleConnection(self):
         self.bind()
         self.listen()
-        client=self.accept()
-        self.clientHandshake(client)
-        self.commandsHandler(client)
+        serverUp=True
+        while serverUp:
+            client=self.accept()
+            thread.start_new_thread(self.clientHandler, (client,))
 
-    def clientHandshake(self, client):
+
+    def clientHandler(self, client):
         self.send_to_client(client, OK)
         name = self.recv_from_client(client)
         self.log("received name: '{}'".format(name))
@@ -96,6 +98,7 @@ class ConnectionHandler(object):
             client.socket.close()
             return
         self.send_to_client(client, OK)
+        self.commandsHandler(client)
 
 
     def recv_command(self, client):
