@@ -14,6 +14,7 @@ NOT_FOUND = 'not found'
 GOODBYE = 'good bye'
 IP = '127.0.0.1'
 PORT = 3030
+SHUTDOWN='shutdown'
 
 
 class DB(object):
@@ -159,6 +160,7 @@ class ConnectionHandler(object):
 class Server(object):  # sends request to database,receives answer sends answer to translator
     def __init__(self, address, socket=None, clients={}):
         self.clients = clients
+        self.server_up = True
         self.socket = socket
         if socket == None:
             self.socket = s.socket(s.AF_INET, s.SOCK_STREAM)
@@ -171,11 +173,17 @@ class Server(object):  # sends request to database,receives answer sends answer 
 
         #
         # self.connection_handler.handleConnection()
+    def log(self,data):
+        print data
 
-    def databaseHandler(self,time =5.0):
-        threading.Timer(time, self.databaseHandler).start()
-        print("backing up data")
-        self.data_base.backupData()
+    def databaseHandler(self,time =7.0):
+        t = threading.Timer(time, self.databaseHandler)
+        if self.server_up:
+            t.start()
+            print("backing up data")
+            self.data_base.backupData()
+        else:
+            t.cancel()
 
     def add_client(self, name, client):
         if name not in self.clients.keys():
@@ -184,7 +192,16 @@ class Server(object):  # sends request to database,receives answer sends answer 
         return False
 
     def handleIO(self):
-        pass
+        command=raw_input("enter command:")
+        while command!=SHUTDOWN:
+            command=raw_input("enter command:")
+            pass
+        print 'blaaaaaaaaaaaaaaaa'
+        for client in self.clients:
+            self.clients[client].socket.close()
+        self.socket.close()
+        self.server_up = False
+        raise NameError('System is off')
 
     def setData(self, key, value):
         self.data_base.setData(key, value)
