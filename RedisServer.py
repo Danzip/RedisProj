@@ -2,6 +2,7 @@ import socket as s
 import thread
 import sys
 import json
+import threading
 
 OK = 'ok'
 TAKEN = 'taken'
@@ -19,6 +20,7 @@ class DB(object):
     def __init__(self,file='backup.txt'):
         self.dict = {}
         self.backup_file=file
+        self.loadFromBackUp()
 
     def loadFromBackUp(self):
         f=open(self.backup_file,'r')
@@ -28,6 +30,7 @@ class DB(object):
             if ' : ' in line:
                 key,value=line.split(' : ')
                 self.dict[key]=json.loads(value)
+
     def setData(self, key, value):
         self.dict[key] = value
 
@@ -49,7 +52,7 @@ class DB(object):
     def backupData(self):
         f = open(self.backup_file, 'w')
         for key in self.dict:
-            f.write("{} : {}".format(key,json.dumps(self.dict[key])))
+            f.write("{} : {}\n".format(key,json.dumps(self.dict[key])))
         f.close()
 
 
@@ -147,6 +150,8 @@ class ConnectionHandler(object):
             elif command_action == SEARCH:
                 server_response = self.server.search(command_values)
                 self.send_answer(client, server_response)
+            else :
+                self.send_answer(client,UNKNOWN_COMMAND)
             command = self.recv_command(client)
         client.socket.close()
 
@@ -159,13 +164,27 @@ class Server(object):  # sends request to database,receives answer sends answer 
             self.socket = s.socket(s.AF_INET, s.SOCK_STREAM)
         self.data_base = DB()
         self.connection_handler = ConnectionHandler(self, self.socket, address)
+        # thread.start_new_thread(raw_input,("hi",))
+        thread.start_new_thread(self.handleIO,())
+        thread.start_new_thread(self.databaseHandler,())
         self.connection_handler.handleConnection()
+
+        #
+        # self.connection_handler.handleConnection()
+
+    def databaseHandler(self,time =5.0):
+        threading.Timer(time, self.databaseHandler).start()
+        print("backing up data")
+        self.data_base.backupData()
 
     def add_client(self, name, client):
         if name not in self.clients.keys():
             self.clients[name] = client
             return True
         return False
+
+    def handleIO(self):
+        pass
 
     def setData(self, key, value):
         self.data_base.setData(key, value)
@@ -185,6 +204,7 @@ def main():
 
 
 if __name__ == "__main__":
+    # sys.excepthook = myexcepthook
     main()
 
 # class Translator(object):

@@ -2,7 +2,7 @@ import socket as s
 import json
 
 
-PORT = 3031
+PORT = 3030
 IP = '127.0.0.1'
 
 SET = 'set'
