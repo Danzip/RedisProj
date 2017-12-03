@@ -35,7 +35,12 @@ class Client(object):
         return raw_input('Enter your name: ')
 
     def receive(self):
-        return self.socket.recv(4096)
+        response = self.socket.recv(4096)
+        if response == '':
+            print "WAS CLOSED"
+            self.socket.close()
+        else:
+            return response
 
     def send(self, text):
         self.socket.sendall(text)
@@ -69,8 +74,10 @@ class Client(object):
         response = self.receive()
         if response == TAKEN:
             self.log("name '{}' is already taken")
-            return
+            self.socket.close()
+            return True
         self.log('name was accepted :)\n')
+        return False
 
     def printCommandsList(self):
         for i in range(len(COMMANDS)):
@@ -90,7 +97,9 @@ class Client(object):
     def startConnection(self):
         self.connect()
         self.name = self.getName()
-        self.sendName(self.name)
+        name_confirm = self.sendName(self.name)
+        if name_confirm:
+            return
         response = self.enterCommand()
         while response != GOODBYE:
             self.printResponse(response)
